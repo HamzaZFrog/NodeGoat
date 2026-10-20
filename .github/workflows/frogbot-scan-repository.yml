@@ -1,32 +1,43 @@
 name: "Frogbot Scan Repository"
+
 on:
   workflow_dispatch:
   schedule:
-    # The repository will be scanned once a day at 00:00 GMT.
     - cron: "0 0 * * *"
   push:
     branches:
       - main
+
 permissions:
-  pull-requests: write
   contents: write
+  pull-requests: write
   security-events: write
+
 jobs:
   scan-repository:
     runs-on: ubuntu-latest
     name: Scan Repository (${{ matrix.branch }} branch)
     strategy:
       matrix:
-        branch: ${{ fromJSON(github.event_name == 'push' && '["main"]' || '["main","v2_main"]') }}
+        branch: ["main"]   # Ensure all listed branches exist in GitHub
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
           ref: ${{ matrix.branch }}
+          fetch-depth: 0    # Fetches full history so Frogbot can inspect commits
 
-      - uses: jfrog/frogbot@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Run Frogbot
+        uses: jfrog/frogbot@v3
         env:
           JF_URL: ${{ secrets.FROGBOT_URL }}
           JF_ACCESS_TOKEN: ${{ secrets.FROGBOT_ACCESS_TOKEN }}
           JF_GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JF_GIT_BASE_BRANCH: ${{ matrix.branch }}
+          JF_PROJECT_KEY: "wbg"
           JFROG_CLI_LOG_LEVEL: "DEBUG"
