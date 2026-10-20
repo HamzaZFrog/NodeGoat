@@ -2,8 +2,11 @@ name: "Frogbot Scan Repository"
 on:
   workflow_dispatch:
   schedule:
-    # Daily scan. Pushes and pull requests are scanned by the build workflow before Maven runs.
+    # The repository will be scanned once a day at 00:00 GMT.
     - cron: "0 0 * * *"
+  push:
+    branches:
+      - main
 permissions:
   pull-requests: write
   contents: write
@@ -14,13 +17,16 @@ jobs:
     name: Scan Repository (${{ matrix.branch }} branch)
     strategy:
       matrix:
-        branch: [ "main", "v2_main" ]
+        branch: ${{ fromJSON(github.event_name == 'push' && '["main"]' || '["main","v2_main"]') }}
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ matrix.branch }}
+
       - uses: jfrog/frogbot@v3
         env:
           JF_URL: ${{ secrets.FROGBOT_URL }}
           JF_ACCESS_TOKEN: ${{ secrets.FROGBOT_ACCESS_TOKEN }}
           JF_GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JF_GIT_BASE_BRANCH: ${{ matrix.branch }}
-          JF_PROJECT_KEY: wbg
           JFROG_CLI_LOG_LEVEL: "DEBUG"
