@@ -19,7 +19,7 @@ jobs:
     name: Scan Repository (${{ matrix.branch }} branch)
     strategy:
       matrix:
-        branch: ["main"]   # Ensure all listed branches exist in GitHub
+        branch: ["master"]   # Ensure all listed branches exist in GitHub
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
