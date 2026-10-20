@@ -19,7 +19,7 @@ jobs:
       matrix:
         branch: ${{ fromJSON(github.event_name == 'push' && '["main"]' || '["main","v2_main"]') }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           ref: ${{ matrix.branch }}
 
